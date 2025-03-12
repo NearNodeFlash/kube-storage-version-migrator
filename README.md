@@ -37,4 +37,3 @@ images are pushed to the following Kubernetes production repos:
 - us.gcr.io/k8s-artifacts-prod/storage-migrator
 - eu.gcr.io/k8s-artifacts-prod/storage-migrator
 - asia.gcr.io/k8s-artifacts-prod/storage-migrator
-
