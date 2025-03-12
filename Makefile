@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
+REGISTRY ?= ghcr.io/nearnodeflash
 STAGING_REGISTRY := gcr.io/k8s-staging-storage-migrator
-VERSION ?= v0.1
+VERSION ?= $(shell cat .version)
 NAMESPACE ?= kube-system
 DELETE ?= "gcloud container images delete"
-COMPONENTS = initializer migrator trigger
+#COMPONENTS = initializer migrator trigger
+COMPONENTS = migrator trigger
 
 .PHONY: test
 test:
@@ -31,9 +32,16 @@ else
 	go install sigs.k8s.io/kube-storage-version-migrator/$(WHAT)
 endif
 
+# Let .version be phony so that a git update to the workarea can be reflected
+# in it each time it's needed.
+.PHONY: .version
+.version: ## Uses the git-version-gen script to generate a tag version
+	./git-version-gen --fallback `git rev-parse HEAD` > .version
+
 .PHONY: all-images
 all-images: $(COMPONENTS:%=image-%)
-image-%:
+image-%: VERSION ?= $(shell cat .version)
+image-%: .version
 	docker build --no-cache -t $(REGISTRY)/storage-version-migration-$*:$(VERSION) --file cmd/$*/Dockerfile .
 
 .PHONY: e2e-test
@@ -41,7 +49,8 @@ e2e-test:
 	CGO_ENABLED=0 GOOS=linux GO111MODULE=on go test -c -o ./test/e2e/e2e.test ./test/e2e
 
 .PHONY: local-manifests
-local-manifests:
+local-manifests: VERSION ?= $(shell cat .version)
+local-manifests: .version
 	mkdir -p manifests.local
 	cp manifests/* manifests.local/
 	find ./manifests.local -type f -exec sed -i -e "s|REGISTRY|$(REGISTRY)|g" {} \;
@@ -50,7 +59,8 @@ local-manifests:
 
 .PHONY: push-all
 push-all: $(COMPONENTS:%=push-%)
-push-%: image-%
+push-%: VERSION ?= $(shell cat .version)
+push-%: .version image-%
 	docker push $(REGISTRY)/storage-version-migration-$*:$(VERSION)
 
 .PHONY: release-staging release-alias-tag
@@ -59,12 +69,14 @@ release-staging: ## Builds and push container images to the staging bucket.
 
 .PHONY: release-alias-tag
 release-alias-tag: $(COMPONENTS:%=release-alias-tag-%)
-release-alias-tag-%: # Adds the tag to the last build tag. BASE_REF comes from the cloudbuild.yaml
+release-alias-tag-%: VERSION ?= $(shell cat .version)
+release-alias-tag-%: .version # Adds the tag to the last build tag. BASE_REF comes from the cloudbuild.yaml
 	gcloud container images add-tag --quiet $(REGISTRY)/storage-version-migration-$*:$(VERSION) $(REGISTRY)/storage-version-migration-$*:$(BASE_REF)
 
 .PHONY: delete-all-images
 delete-all-images: $(COMPONENTS:%=delete-image-%)
-delete-image-%:
+delete-image-%: VERSION ?= $(shell cat .version)
+delete-image-%: .version
 	eval "$(DELETE) $(REGISTRY)/storage-version-migration-$*:$(VERSION)"
 
 .PHONY: clean
