@@ -40,15 +40,14 @@ jobs:
           # For PR event, tag example: 'pr-3'
           type=ref,event=pr
           # For PR event or merge event, tag example: 1.0.1.12-5667
-          type=raw,value=${{ env.VERSION_TAG }}
+          type=raw,value=${{ env.VERSION_TAG }},enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
           # For PR event or merge, tag example: 566769e04d2436cf5f42ae4f46092c7dff6e668e
           type=raw,value=${{ env.SHA_TAG }}          
           # For push to semver tag, tag example: 1.0.2
           # This also sets 'latest'.
-          type=semver,pattern={{version}}
+          type=semver,pattern={{version}},enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
           # For push to semver tag, tag example: 1.0
-          type=semver,pattern={{major}}.{{minor}}
-
+          type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
           # set latest tag for nnf-main branch
           type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
 
@@ -80,15 +79,14 @@ jobs:
           # For PR event, tag example: 'pr-3'
           type=ref,event=pr
           # For PR event or merge event, tag example: 1.0.1.12-5667
-          type=raw,value=${{ env.VERSION_TAG }}
+          type=raw,value=${{ env.VERSION_TAG }},enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
           # For PR event or merge, tag example: 566769e04d2436cf5f42ae4f46092c7dff6e668e
           type=raw,value=${{ env.SHA_TAG }}          
           # For push to semver tag, tag example: 1.0.2
           # This also sets 'latest'.
-          type=semver,pattern={{version}}
+          type=semver,pattern={{version}},enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
           # For push to semver tag, tag example: 1.0
-          type=semver,pattern={{major}}.{{minor}}
-
+          type=semver,pattern={{major}}.{{minor}},enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
           # set latest tag for nnf-main branch
           type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
 
