@@ -60,7 +60,7 @@ local-manifests: .version
 
 .PHONY: nnf-manifests
 nnf-manifests: local-manifests
-	rm manifests.local/*-e manifests.local/*-patch
+	rm -f manifests.local/*-e manifests.local/*-patch
 	rm manifests.local/kustomization.yaml
 	rm -rf storage-version-migrator
 	mv manifests.local storage-version-migrator
