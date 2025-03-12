@@ -113,9 +113,14 @@ jobs:
       run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
     - name: Verify that the tag is annotated
       run: if test x$(git for-each-ref ${{ github.ref }} | awk '{print $2}') = xtag; then /bin/true; else echo "\"${{ github.ref }}\" does not look like an annotated tag!"; /bin/false; fi
+    - name: Collect manifests
+      run: make nnf-manifests
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
         #prerelease: true
         generate_release_notes: true
+        files: |
+            manifests.tar
+
 
