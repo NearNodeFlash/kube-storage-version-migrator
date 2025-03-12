@@ -48,7 +48,6 @@ jobs:
           type=semver,pattern={{version}}
           # For push to semver tag, tag example: 1.0
           type=semver,pattern={{major}}.{{minor}}
-
           # set latest tag for nnf-main branch
           type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
 
@@ -88,7 +87,6 @@ jobs:
           type=semver,pattern={{version}}
           # For push to semver tag, tag example: 1.0
           type=semver,pattern={{major}}.{{minor}}
-
           # set latest tag for nnf-main branch
           type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
 
