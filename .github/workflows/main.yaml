@@ -14,9 +14,9 @@ jobs:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: "Lowercase repository name for docker build"
+    - name: "Lowercase AND SHORTEN the repository name for docker build"
       id: lowercase-repository-name
-      run: echo "REPO_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      run: echo "REPO_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]' | sed -e 's/-migrator$//')" >> $GITHUB_ENV
 
     - name: "Set tags for main/master"
       id: set_tags
@@ -28,12 +28,12 @@ jobs:
         cat ${GITHUB_ENV}
       shell: bash
 
-    - name: "Docker metadata"
+    - name: "Docker metadata for the migrator image"
       id: meta
       uses: docker/metadata-action@v5
       with:
         images: |
-          ghcr.io/${{ env.REPO_NAME }}
+          ghcr.io/${{ env.REPO_NAME }}-migrator
         tags: |
           # For merge to master branch, tag example: 'master'
           type=ref,event=branch
@@ -48,6 +48,9 @@ jobs:
           type=semver,pattern={{version}}
           # For push to semver tag, tag example: 1.0
           type=semver,pattern={{major}}.{{minor}}
+
+          # set latest tag for nnf-main branch
+          type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
 
     - name: "Docker login"
       id: docker_login
@@ -64,6 +67,30 @@ jobs:
         file: cmd/migrator/Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
+
+    - name: "Docker metadata for the trigger"
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ghcr.io/${{ env.REPO_NAME }}-trigger
+        tags: |
+          # For merge to master branch, tag example: 'master'
+          type=ref,event=branch
+          # For PR event, tag example: 'pr-3'
+          type=ref,event=pr
+          # For PR event or merge event, tag example: 1.0.1.12-5667
+          type=raw,value=${{ env.VERSION_TAG }}
+          # For PR event or merge, tag example: 566769e04d2436cf5f42ae4f46092c7dff6e668e
+          type=raw,value=${{ env.SHA_TAG }}          
+          # For push to semver tag, tag example: 1.0.2
+          # This also sets 'latest'.
+          type=semver,pattern={{version}}
+          # For push to semver tag, tag example: 1.0
+          type=semver,pattern={{major}}.{{minor}}
+
+          # set latest tag for nnf-main branch
+          type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'nnf-main') }}
 
     - name: "Build the trigger Docker image"
       id: docker_build_trigger
