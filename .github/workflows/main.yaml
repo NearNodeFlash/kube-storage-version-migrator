@@ -57,12 +57,22 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: "Build the final Docker image"
-      id: docker_build
+    - name: "Build the migrator Docker image"
+      id: docker_build_migrator
       uses: docker/build-push-action@v6
       with:
+        file: cmd/migrator/Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
+
+    - name: "Build the trigger Docker image"
+      id: docker_build_trigger
+      uses: docker/build-push-action@v6
+      with:
+        file: cmd/trigger/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+
 
   create_release:
     needs: build
