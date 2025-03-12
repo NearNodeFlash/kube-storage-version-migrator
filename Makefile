@@ -51,11 +51,20 @@ e2e-test:
 .PHONY: local-manifests
 local-manifests: VERSION ?= $(shell cat .version)
 local-manifests: .version
+	rm -rf manifests.local
 	mkdir -p manifests.local
 	cp manifests/* manifests.local/
 	find ./manifests.local -type f -exec sed -i -e "s|REGISTRY|$(REGISTRY)|g" {} \;
 	find ./manifests.local -type f -exec sed -i -e "s|VERSION|$(VERSION)|g" {} \;
 	find ./manifests.local -type f -exec sed -i -e "s|NAMESPACE|$(NAMESPACE)|g" {} \;
+
+.PHONY: nnf-manifests
+nnf-manifests: local-manifests
+	rm manifests.local/*-e manifests.local/*-patch
+	rm manifests.local/kustomization.yaml
+	rm -rf storage-version-migrator
+	mv manifests.local storage-version-migrator
+	tar cf manifests.tar storage-version-migrator
 
 .PHONY: push-all
 push-all: $(COMPONENTS:%=push-%)
